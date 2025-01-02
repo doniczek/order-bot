@@ -1,0 +1,22 @@
+{
+    "colors": {
+        "primary": "#0099ff",
+        "success": "#00ff00",
+        "error": "#ff0000",
+        "warning": "#ffff00",
+        "announcement": "#5865F2"
+    },
+    "emojis": {
+        "success": "✅",
+        "error": "❌",
+        "warning": "⚠️"
+    },
+    "status": {
+        "text": "🛠️ bot",
+        "type": 4,
+        "status": "online"
+    },
+    "channels": {
+        "rewards": "1323383864336322560"
+    }
+} 

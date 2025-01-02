@@ -1,0 +1,81 @@
+{
+  "settings": {
+    "embedColor": "#0099FF",
+    "footerText": "Ceny mogą ulec zmianie. Wszystkie ceny są cenami netto."
+  },
+  "categories": {
+    "discord": {
+      "emoji": "🤖",
+      "name": "Boty Discord",
+      "color": "#5865F2",
+      "products": [
+        {
+          "name": "Bot Discord",
+          "description": "Bot dostosowany do Twoich potrzeb",
+          "price": "od 100 PLN"
+        },
+        {
+          "name": "Serwery Discord",
+          "description": "Kompleksowa konfiguracja serwera",
+          "price": "od 50 PLN"
+        }
+      ]
+    },
+    "minecraft": {
+      "emoji": "⛏️",
+      "name": "Minecraft",
+      "color": "#62B47A",
+      "products": [
+        {
+          "name": "Pluginy Minecraft",
+          "description": "Własne pluginy na zamówienie",
+          "price": "od 80 PLN"
+        },
+        {
+          "name": "Trailery Minecraft",
+          "description": "Profesjonalne trailery serwerów",
+          "price": "od 150 PLN"
+        },
+        {
+          "name": "Rendery Minecraft",
+          "description": "Wysokiej jakości rendery",
+          "price": "od 30 PLN"
+        },
+        {
+          "name": "Paczki Minecraft",
+          "description": "Spersonalizowane paczki resourcepack",
+          "price": "od 40 PLN"
+        }
+      ]
+    },
+    "graphics": {
+      "emoji": "🎨",
+      "name": "Grafiki",
+      "color": "#FF73FA",
+      "products": [
+        {
+          "name": "Grafiki na zamówienie",
+          "description": "Banery, logo, avatary i inne",
+          "price": "od 50 PLN"
+        }
+      ]
+    },
+    "development": {
+      "emoji": "💻",
+      "name": "Development",
+      "color": "#FF5757",
+      "products": [
+        {
+          "name": "Strony Internetowe",
+          "description": "Responsywne strony www",
+          "price": "od 300 PLN"
+        },
+        {
+          "name": "PC Developer",
+          "description": "Aplikacje desktopowe",
+          "price": "od 200 PLN"
+        }
+      ]
+    }
+  }
+} 
