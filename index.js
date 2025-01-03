@@ -1,8 +1,10 @@
-const { Client, GatewayIntentBits, Collection, Intents, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
 const express = require('express');
 const bodyParser = require('body-parser');
 const { body, validationResult } = require('express-validator');
 const config = require('./config/config.json');
+const fs = require('fs').promises;
+const path = require('path');
 
 class App {
     constructor() {
@@ -22,7 +24,39 @@ class App {
         });
     }
 
-    initializeBot() {
+    async deployCommands() {
+        try {
+            const commands = [];
+            const commandsPath = path.join(__dirname, 'commands');
+            const commandFiles = await fs.readdir(commandsPath);
+
+            for (const file of commandFiles) {
+                const command = require(`./commands/${file}`);
+                if ('data' in command && 'execute' in command) {
+                    commands.push(command.data.toJSON());
+                    console.log(`✅ Załadowano komendę: ${command.data.name}`);
+                } else {
+                    console.log(`⚠️ Komenda w ${file} nie ma wymaganych właściwości "data" lub "execute"`);
+                }
+            }
+
+            const rest = new REST().setToken(process.env.BOT_TOKEN);
+            console.log(`🔄 Rozpoczęto odświeżanie ${commands.length} komend aplikacji...`);
+
+            await rest.put(
+                Routes.applicationCommands(process.env.CLIENT_ID),
+                { body: commands },
+            );
+
+            console.log(`✅ Pomyślnie odświeżono ${commands.length} komend aplikacji`);
+            return commands;
+        } catch (error) {
+            console.error('❌ Błąd podczas odświeżania komend:', error);
+            throw error;
+        }
+    }
+
+    async initializeBot() {
         this.client = new Client({
             intents: Object.values(GatewayIntentBits)
         });
@@ -31,8 +65,19 @@ class App {
         this.client.giveaways = new Map();
         this.client.verificationCodes = new Map();
 
-        this.client.on('ready', () => {
+        this.client.on('ready', async () => {
+            console.log(`Zalogowano jako ${this.client.user.tag}`);
             
+            try {
+                const commands = await this.deployCommands();
+                commands.forEach(cmd => {
+                    const command = require(`./commands/${cmd.name}.js`);
+                    this.client.commands.set(cmd.name, command);
+                });
+            } catch (error) {
+                console.error('Błąd podczas deployowania komend:', error);
+            }
+
             this.client.user.setPresence({
                 activities: [{
                     name: config.status.text,
@@ -42,8 +87,8 @@ class App {
             });
         });
 
-        this.loadEvents();
-        this.loadCommands();
+        await this.loadEvents();
+        await this.loadCommands();
 
         this.client.login(process.env.BOT_TOKEN);
     }

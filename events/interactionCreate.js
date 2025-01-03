@@ -2,6 +2,7 @@ const { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('
 const priceConfig = require('../config/prices.json');
 const config = require('../config/config.json');
 const EmbedMessages = require('../utils/embeds.js');
+const TICKET_TYPES = require('../config/tickets.js');
 
 module.exports = {
     name: 'interactionCreate',
@@ -120,15 +121,30 @@ module.exports = {
             await interaction.followUp({ embeds: [responseEmbed], ephemeral: true });
         }
 
-        if (interaction.isButton() && interaction.customId === 'create_ticket') {
+        if (interaction.isButton() && interaction.customId.startsWith('create_ticket_')) {
             await interaction.deferReply({ ephemeral: true });
 
             try {
+                const ticketType = interaction.customId.replace('create_ticket_', '');
+                const type = TICKET_TYPES[ticketType.toUpperCase()];
+                
                 const existingTicket = interaction.guild.channels.cache.find(
-                    channel => channel.name === `ticket-${interaction.user.id}`
+                    channel => channel.name === `${type.id}-${interaction.user.id}`
                 );
 
                 if (existingTicket) {
+                    const existingTicketEmbed = new EmbedBuilder()
+                        .setColor(config.colors.error)
+                        .setTitle('❌ Nie można utworzyć ticketu')
+                        .setDescription(`
+Masz już otwarty ticket typu **${type.name}**! ${existingTicket}
+
+⚠️ **Co możesz zrobić:**
+• Użyj istniejącego ticketu
+• Poczekaj na zamknięcie obecnego ticketu
+• Skontaktuj się z administracją jeśli to błąd
+                        `);
+
                     await interaction.editReply({
                         embeds: [existingTicketEmbed],
                         ephemeral: true
@@ -137,12 +153,12 @@ module.exports = {
                 }
 
                 let category = interaction.guild.channels.cache.find(
-                    cat => cat.name.toLowerCase() === 'tickety' && cat.type === 4
+                    cat => cat.name === type.category && cat.type === 4
                 );
 
                 if (!category) {
                     category = await interaction.guild.channels.create({
-                        name: 'TICKETY',
+                        name: type.category,
                         type: 4
                     });
                 }
@@ -150,7 +166,7 @@ module.exports = {
                 const adminRole = interaction.guild.roles.cache.find(r => r.name === 'Administrator');
 
                 const ticketChannel = await interaction.guild.channels.create({
-                    name: `ticket-${interaction.user.id}`,
+                    name: `${type.id}-${interaction.user.id}`,
                     type: 0,
                     parent: category,
                     permissionOverwrites: [
@@ -177,25 +193,15 @@ module.exports = {
                 const ticketEmbed = new EmbedBuilder()
                     .setColor(config.colors.primary)
                     .setAuthor({ 
-                        name: `Ticket utworzony przez ${interaction.user.tag}`, 
+                        name: `${type.name} | ${interaction.user.tag}`, 
                         iconURL: interaction.user.displayAvatarURL({ dynamic: true }) 
                     })
-                    .setTitle('🎫 Nowy Ticket')
+                    .setTitle(`${type.emoji} Nowy Ticket`)
                     .setDescription(`
-👋 Witaj ${interaction.user}!
+${type.description}
+
 ${adminRole ? `👮 **Administracja:** ${adminRole}` : ''}
-
-📝 **Jak opisać problem:**
-• Przedstaw szczegółowo swoją sprawę
-• Dołącz dowody/zrzuty ekranu jeśli to możliwe
-• Bądź cierpliwy, administracja odpowie najszybciej jak to możliwe
-
-⚠️ **Pamiętaj:**
-• Bądź kulturalny i rzeczowy
-• Nie oznaczaj administracji bez powodu
-• Jeden ticket = jedna sprawa
-
-🔒 Aby zamknąć ticket, kliknij przycisk poniżej
+👤 **Użytkownik:** ${interaction.user}
                     `)
                     .setFooter({ text: interaction.guild.name })
                     .setTimestamp();
@@ -205,43 +211,15 @@ ${adminRole ? `👮 **Administracja:** ${adminRole}` : ''}
                     components: [new ActionRowBuilder().addComponents(closeButton)]
                 });
 
-                const closeEmbed = new EmbedBuilder()
-                    .setColor(config.colors.error)
-                    .setAuthor({ 
-                        name: `Ticket zamknięty przez ${interaction.user.tag}`, 
-                        iconURL: interaction.user.displayAvatarURL({ dynamic: true }) 
-                    })
-                    .setTitle('🔒 Ticket zostanie zamknięty')
-                    .setDescription(`
-⏰ Kanał zostanie usunięty za 5 sekund...
-
-📌 **Informacje o tickecie:**
-• Utworzony przez: ${interaction.channel.name.replace('ticket-', '')}
-• Zamknięty przez: ${interaction.user}
-• Data zamknięcia: <t:${Math.floor(Date.now() / 1000)}:F>
-                    `)
-                    .setFooter({ text: 'Dziękujemy za kontakt z administracją!' })
-                    .setTimestamp();
-
-                const existingTicketEmbed = EmbedMessages.error()
-                    .setTitle('❌ Nie można utworzyć ticketu')
-                    .setDescription(`
-Masz już otwarty ticket! ${existingTicket}
-
-⚠️ **Co możesz zrobić:**
-• Użyj istniejącego ticketu
-• Poczekaj na zamknięcie obecnego ticketu
-• Skontaktuj się z administracją jeśli to błąd
-                    `);
-
-                const ticketCreatedEmbed = EmbedMessages.success()
+                const ticketCreatedEmbed = new EmbedBuilder()
+                    .setColor(config.colors.success)
                     .setTitle('✅ Ticket został utworzony!')
                     .setDescription(`
-Twój ticket został utworzony: ${ticketChannel}
+Twój ticket typu **${type.name}** został utworzony: ${ticketChannel}
 
 ℹ️ **Co dalej:**
 • Przejdź do utworzonego kanału
-• Opisz swój problem
+• Opisz swój problem/zapytanie
 • Czekaj na odpowiedź administracji
                     `);
 
